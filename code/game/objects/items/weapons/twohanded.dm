@@ -26,6 +26,7 @@
 	var/force_wielded = 0
 	var/wieldsound = null
 	var/unwieldsound = null
+	var/f_lum = 2
 
 /obj/item/weapon/twohanded/proc/unwield()
 	wielded = 0
@@ -72,6 +73,11 @@
 		user << "<span class='notice'>You are now carrying the [name] with one hand.</span>"
 		if (src.unwieldsound)
 			playsound(src.loc, unwieldsound, 50, 1)
+		if (istype(src,/obj/item/weapon/twohanded/dualsaber/) || istype(src,/obj/item/weapon/twohanded/dualsaber/toy/))
+			if(src in user.contents)
+				user.AddLuminosity(-f_lum)
+			else
+				SetLuminosity(0)
 
 		var/obj/item/weapon/twohanded/offhand/O = user.get_inactive_hand()
 		if(O && istype(O))
@@ -86,6 +92,11 @@
 		user << "<span class='notice'>You grab the [initial(name)] with both hands.</span>"
 		if (src.wieldsound)
 			playsound(src.loc, wieldsound, 50, 1)
+		if (istype(src,/obj/item/weapon/twohanded/dualsaber/) || istype(src,/obj/item/weapon/twohanded/dualsaber/toy/))
+			if(src in user.contents)
+				user.AddLuminosity(f_lum)
+			else
+				SetLuminosity(f_lum)
 
 		var/obj/item/weapon/twohanded/offhand/O = new(user) ////Let's reserve his other hand~
 		O.name = "[initial(name)] - offhand"
@@ -153,6 +164,7 @@ obj/item/weapon/twohanded/
 	throwforce = 15
 	w_class = 4.0
 	slot_flags = SLOT_BACK
+	flags = SHARP
 	force_unwielded = 5
 	force_wielded = 24 // Was 18, Buffed - RobRichards/RR
 	attack_verb = list("attacked", "chopped", "cleaved", "torn", "cut")
@@ -194,7 +206,7 @@ obj/item/weapon/twohanded/
 	wieldsound = 'sound/weapons/saberon.ogg'
 	unwieldsound = 'sound/weapons/saberoff.ogg'
 	hitsound = "swing_hit"
-	flags = NOSHIELD
+	flags = NOSHIELD | SHARP
 	origin_tech = "magnets=3;syndicate=4"
 	item_color = "green"
 	attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
@@ -276,6 +288,16 @@ obj/item/weapon/twohanded/
 		else
 			user << "<span class='warning'>It's starting to look like a triple rainbow - no, nevermind.</span>"
 
+/obj/item/weapon/twohanded/dualsaber/pickup(mob/user)
+	if(wielded) // This should never trigger as the dualsaber unwields on drop
+		SetLuminosity(0)
+		user.AddLuminosity(f_lum)
+	..()
+
+/obj/item/weapon/twohanded/dualsaber/dropped(mob/user)
+	if(wielded)
+		user.AddLuminosity(-f_lum)
+	..()
 
 //spears
 /obj/item/weapon/twohanded/spear
